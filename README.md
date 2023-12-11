@@ -10,9 +10,9 @@ SeamlessM4T models support the tasks of:
 - Text-to-text translation (T2TT)
 - Automatic speech recognition (ASR)
 
-:star2: We are releasing SemalessM4T v2, an updated version with our novel *UnitY2* architecture. This new model improves over SeamlessM4T v1 in quality as well as inference latency in speech generation tasks.
+:star2: We are releasing SeamlessM4T v2, an updated version with our novel *UnitY2* architecture. This new model improves over SeamlessM4T v1 in quality as well as inference latency in speech generation tasks.
 
-To learn more about the collection of SeamlessM4T models, the approach used in each, their language coverage and their performance, visit the [SeamlessM4T README](docs/m4t/README.md) or [🤗 Model Card](https://huggingface.co/facebook/seamless-m4t-v2-large)
+To learn more about the collection of SeamlessM4T models, the approach used in each, their language coverage and their performance, visit the [SeamlessM4T README](docs/m4t/README.md) or [🤗 Model Card](https://huggingface.co/facebook/seamless-m4t-v2-large).
 
 ## SeamlessExpressive
 
@@ -62,7 +62,7 @@ The Seamless model is the unified model for expressive streaming speech-to-speec
 ## Installation
 > [!NOTE]
 > One of the prerequisites is [fairseq2](https://github.com/facebookresearch/fairseq2) which has pre-built packages available only
-> for Linux x84-86 and Apple-silicon Mac computers. In addition it has a dependency on [libsndfile](https://github.com/libsndfile/libsndfile) which
+> for Linux x86-64 and Apple-silicon Mac computers. In addition it has a dependency on [libsndfile](https://github.com/libsndfile/libsndfile) which
 > might not be installed on your machine. If you experience any installation issues, please refer to its
 > [README](https://github.com/facebookresearch/fairseq2) for further instructions.
 
@@ -95,20 +95,10 @@ For running S2TT/ASR natively (without Python) using GGML, please refer to [the 
 > [!NOTE]
 > Please check the [section](#seamlessexpressive-models) on how to download the model.
 
-Below is the script for efficient batched inference.
+Here’s an example of using the CLI from the root directory to run inference.
 
 ```bash
-export MODEL_DIR="/path/to/SeamlessExpressive/model"
-export TEST_SET_TSV="input.tsv" # Your dataset in a TSV file, with headers "id", "audio"
-export TGT_LANG="spa" # Target language to translate into, options including "fra", "deu", "eng" ("cmn" and "ita" are experimental)
-export OUTPUT_DIR="tmp/" # Output directory for generated text/unit/waveform
-export TGT_TEXT_COL="tgt_text" # The column in your ${TEST_SET_TSV} for reference target text to calcuate BLEU score. You can skip this argument.
-export DFACTOR="1.0" # Duration factor for model inference to tune predicted duration (preddur=DFACTOR*preddur) per each position which affects output speech rate. Greater value means slower speech rate (default to 1.0). See expressive evaluation README for details on duration factor we used.
-python src/seamless_communication/cli/expressivity/evaluate/pretssel_inference.py \
-  ${TEST_SET_TSV} --gated-model-dir ${MODEL_DIR} --task s2st --tgt_lang ${TGT_LANG}\
-  --audio_root_dir "" --output_path ${OUTPUT_DIR} --ref_field ${TGT_TEXT_COL} \
-  --model_name seamless_expressivity --vocoder_name vocoder_pretssel \
-  --text_unk_blocking True --duration_factor ${DFACTOR}
+expressivity_predict <path_to_input_audio> --tgt_lang <tgt_lang> --model_name seamless_expressivity --vocoder_name vocoder_pretssel --output--path <path_to_save_audio>
 ```
 
 ### SeamlessStreaming and Seamless Inference
@@ -124,13 +114,16 @@ You can also run the demo locally, by cloning the space from [here](https://hugg
 
 ## Running SeamlessM4T & SeamlessExpressive [Gradio](https://github.com/gradio-app/gradio) demos locally
 
-To launch the same space demo we host on HuggingFace locally,
+To launch the same demo Space we host on Hugging Face locally:
 
 ```bash
 cd demo
 pip install -r requirements.txt
 python app.py
 ```
+
+Seamless M4T is also available in the 🤗 Transformers library. For more details, refer to the [SeamlessM4T docs](https://huggingface.co/docs/transformers/main/en/model_doc/seamless_m4t_v2) 
+or this hands-on [Google Colab](https://colab.research.google.com/github/ylacombe/explanatory_notebooks/blob/main/seamless_m4t_hugging_face.ipynb).
 
 # Resources and usage
 ## Model
@@ -163,6 +156,23 @@ Please check out above [section](#seamlessexpressive-models) on how to acquire `
 ### SeamlessM4T Evaluation
 To reproduce our results, or to evaluate using the same metrics over your own test sets, please check out the [README here](src/seamless_communication/cli/m4t/evaluate).
 ### SeamlessExpressive Evaluation
+
+Below is the script for efficient batched evaluation.
+
+```bash
+export MODEL_DIR="/path/to/SeamlessExpressive/model"
+export TEST_SET_TSV="input.tsv" # Your dataset in a TSV file, with headers "id", "audio"
+export TGT_LANG="spa" # Target language to translate into, options including "fra", "deu", "eng" ("cmn" and "ita" are experimental)
+export OUTPUT_DIR="tmp/" # Output directory for generated text/unit/waveform
+export TGT_TEXT_COL="tgt_text" # The column in your ${TEST_SET_TSV} for reference target text to calcuate BLEU score. You can skip this argument.
+export DFACTOR="1.0" # Duration factor for model inference to tune predicted duration (preddur=DFACTOR*preddur) per each position which affects output speech rate. Greater value means slower speech rate (default to 1.0). See expressive evaluation README for details on duration factor we used.
+expressivity_evaluate ${TEST_SET_TSV} \
+  --gated-model-dir ${MODEL_DIR} --task s2st --tgt_lang ${TGT_LANG} \
+  --audio_root_dir "" --output_path ${OUTPUT_DIR} --ref_field ${TGT_TEXT_COL} \
+  --model_name seamless_expressivity --vocoder_name vocoder_pretssel \
+  --text_unk_blocking True --duration_factor ${DFACTOR}
+```
+
 Please check out this [README section](docs/expressive/README.md#automatic-evaluation)
 
 ### SeamlessStreaming and Seamless Evaluation
@@ -178,11 +188,11 @@ To transcribe/translte a given audio,
 ./ggml/bin/unity --model seamlessM4T_medium.ggml input.wav
 ```
 
-For details of build and more usage please checkout [unity.cpp](ggml)
+For details of build and more usage please check out [unity.cpp](ggml)
 
 ## Expressive Datasets
 
-We created two expressive speech-to-speech translation datasets, mExpresso and mDRAL, between English and five other languages -- French, German, Italian, Mandarin and Spanish. We currently open source the speech-to-text of mExpresso for out-of-English directions, and we will open source the remaining part of the datasets soon. For details, please checkout [README](docs/expressive/README.md#benchmark-datasets)
+We created two expressive speech-to-speech translation datasets, mExpresso and mDRAL, between English and five other languages -- French, German, Italian, Mandarin and Spanish. We currently open source the speech-to-text of mExpresso for out-of-English directions, and we will open source the remaining part of the datasets soon. For details, please check out [README](docs/expressive/README.md#benchmark-datasets)
 
 ### SeamlessAlignExpressive
 We’re introducing the first expressive speech alignment procedure. Starting with raw data, the expressive alignment procedure automatically discovers pairs of audio segments sharing not only the same meaning, but the same overall expressivity. To showcase this procedure, we are making metadata available to create a benchmarking dataset called SeamlessAlignExpressive, that can be used to validate the quality of our alignment method. SeamlessAlignExpressive is the first large-scale (11k+ hours) collection of multilingual audio alignments for expressive translation. More details can be found on the [SeamlessAlignExpressive README](docs/expressive/seamless_align_expressive_README.md).
